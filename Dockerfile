@@ -1,100 +1,97 @@
-#==================================================================================
-# Initial configuration
-#==================================================================================
 FROM ubuntu:14.04
 
-# Work-around for the fact that docker doesn't run upstart (or other daemons)
-# Otherwise 'apt-get install apache2' will fail when it tries to run 'service start apache2'
-RUN dpkg-divert --local --rename --add /sbin/initctl
-RUN ln -s -f /bin/true /sbin/initctl
+# Detect a deb package cache
+ADD deploy/detect_squid_deb_proxy /var/build/scripts/detect_squid_deb_proxy
+RUN /var/build/scripts/detect_squid_deb_proxy
 
-# If host is running squid-deb-proxy, populate /etc/apt/apt.conf.d/30proxy
-RUN ip route | awk '/^def/{print $3}' > /tmp/host_ip.txt
-RUN perl -e 'use IO::Socket::INET; $s=IO::Socket::INET->new(PeerAddr=>shift); $s->write("HEAD /\n"); $s->read($x, 1024); $x =~ /squid-deb-proxy/ or die' $(cat /tmp/host_ip.txt):8000 \
-  && (echo "Acquire::http::Proxy \"http://$(cat /tmp/host_ip.txt):8000\";" > /etc/apt/apt.conf.d/30proxy) \
-  || echo "No squid-deb-proxy detected"
 
-# setup extended package repo
-RUN echo "deb http://archive.ubuntu.com/ubuntu trusty main restricted universe multiverse" > /etc/apt/sources.list
+##### Install packages
+
+# LAMP
+ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update
-
-#==================================================================================
-# Install packages
-#==================================================================================
-
-# Install lamp packages
-RUN DEBIAN_FRONTEND=noninteractive apt-get -y install git mysql-client \
+RUN apt-get -y install git mysql-client \
   mysql-server apache2 libapache2-mod-php5 php5-mysql php-apc php5-gd \
   php5-memcache php5-json memcached python-setuptools php5-curl
 
-# Install other utilities
-RUN apt-get install -y curl git vim
-RUN apt-get install -y openssh-server pwgen
+# Utilities
+RUN apt-get install -y curl git vim openssh-server pwgen
 
-# Install and configure supervisord
-# See http://docs.docker.io/en/latest/examples/using_supervisord/
+# supervisord init replacement
 RUN easy_install supervisor
 ADD ./deploy/supervisord.conf /etc/supervisord.conf
 RUN mkdir -p /var/run/sshd; mkdir -p /var/log/supervisor
 
-# Install composer and drush
+# composer and drush
 RUN curl -sS https://getcomposer.org/installer | php
 RUN mv composer.phar /usr/local/bin/composer
 RUN composer global require drush/drush:6.*
 RUN ln -sf /$HOME/.composer/vendor/drush/drush/drush /usr/bin/drush
 
-# Install and configure postfix for sending of emails
+# postfix for emails
 RUN echo "postfix postfix/mailname string example.com" | debconf-set-selections
-RUN echo "postfix postfix/main_mailer_type string 'Internet Site'" | debconf-set-selections
+RUN echo "postfix postfix/main_mailer_type string 'Internet Site'" | \
+  debconf-set-selections
 RUN apt-get install -y postfix
 
-#==================================================================================
-# Install codebase, configure apache
-#==================================================================================
 
-# Setup static directory for serving files, fix perms
-ADD ./site /var/shared/sites/wedding/site
-RUN rm -rf /var/www/; ln -s /var/shared/sites/wedding/site /var/www
+##### Setup system
+
+# Add SSH key
+ADD ./deploy/id_rsa.pub /root/.ssh/id_rsa.pub
+RUN cat /root/.ssh/id_rsa.pub >> /root/.ssh/authorized_keys
+RUN chmod 700 /root/.ssh; chmod 600 /root/.ssh/authorized_keys
 
 # Apache vhost configuration
 ADD deploy/apache_vhost /etc/apache2/sites-available/000-default.conf
 RUN a2enmod rewrite vhost_alias
 
-#==================================================================================
-# Initialize the database
-#==================================================================================
+# MySQL setup
+RUN pwgen -c -n -1 12 > /tmp/password_db_root
+RUN pwgen -c -n -1 12 > /tmp/password_db_drupal
+RUN supervisord -c /etc/supervisord.conf && sleep 4 && \
+  mysqladmin -u root password $(cat /tmp/password_db_root) && \
+  echo "CREATE DATABASE drupal; \
+        GRANT ALL PRIVILEGES ON drupal.* TO 'drupal'@'localhost' \
+        IDENTIFIED BY '$(cat /tmp/password_db_drupal)'; \
+	      FLUSH PRIVILEGES;" | mysql -uroot -p$(cat /tmp/password_db_root) && \
+  supervisorctl stop mysql
+RUN rm /tmp/password_db_root
 
-# Load drupal db from dump
-ADD ./db /var/shared/sites/wedding/db/
-ADD ./deploy/pre-deploy.sh /tmp/pre-deploy.sh
-RUN /bin/bash /tmp/pre-deploy.sh
 
-# Post-load db customizations
-ADD ./deploy/post-deploy.sh /tmp/post-deploy.sh
-RUN /bin/bash /tmp/post-deploy.sh
+##### Setup Drupal site
 
-#==================================================================================
-# Install public SSH key
-#==================================================================================
+# Import database
+ADD ./db/ivan_wedding.sql /tmp/drupal.sql
+RUN supervisord -c /etc/supervisord.conf && sleep 4 && \
+  mysql -udrupal -p$(cat /tmp/password_db_drupal) drupal < /tmp/drupal.sql && \
+  supervisorctl stop mysql
 
-ADD ./deploy/id_rsa.pub /root/.ssh/id_rsa.pub
-RUN cat /root/.ssh/id_rsa.pub >> /root/.ssh/authorized_keys
-RUN chmod 700 /root/.ssh; chmod 600 /root/.ssh/authorized_keys
-# workaround for docker/saucy SSH bug; see https://gist.github.com/gasi/5691565
-RUN sed -ri 's/UsePAM yes/UsePAM no/' /etc/ssh/sshd_config
+# Setup code, fix permissions
+RUN rm -rf /var/www && ln -s /var/shared/sites/wedding/site /var/www
+ADD . /tmp/site
+RUN mkdir -p /var/shared/sites && \
+  cp -R /tmp/site /var/shared/sites/wedding && \
+  mkdir /var/www/sites/default/files && \
+  chown -R www-data /var/www/ && \
+  chmod -R o-rwx /var/www/ && \
+  chmod -R ug+rX /var/www/ && \
+  chmod -R ug+w /var/www/sites/default/files
 
-#==================================================================================
-# Finally...
-#==================================================================================
+# Create settings.php
+ADD deploy/settings.db /tmp/settings.db
+RUN (cat /var/www/sites/default/default.settings.php /tmp/settings.db) | \
+  sed -e "s/%%PASSWORD%%/$(cat /tmp/password_db_drupal)/" \
+  > /tmp/settings.php
+RUN cp /tmp/settings.php /var/www/sites/default/settings.php && \
+    chown www-data:www-data /var/www/sites/default/settings.php && \
+    chmod a-w /var/www/sites/default/settings.php
 
-# This invalidates caching of subsequent steps, so we do this last.
-ADD . /var/shared/sites/wedding
-RUN chmod a+w /var/www/sites/default ; mkdir /var/www/sites/default/files ; chown -R www-data:www-data /var/www/
-
-# Set up behat tests
+# Set up behat
 ADD deploy/docker_host_ip /tmp/docker_host_ip
 ADD deploy/selenium_ip /tmp/selenium_ip
-RUN sed -i "s/%%DOCKER_HOST_IP%%/$(cat /tmp/docker_host_ip)/; s/%%SELENIUM_IP%%/$(cat /tmp/selenium_ip)/" /var/www/tests/behat.yml
+RUN sed -i "s/%%DOCKER_HOST_IP%%/$(cat /tmp/docker_host_ip)/; \
+ s/%%SELENIUM_IP%%/$(cat /tmp/selenium_ip)/" /var/www/tests/behat.yml
 RUN composer -q --working-dir=/var/www/tests install
 
 EXPOSE 80

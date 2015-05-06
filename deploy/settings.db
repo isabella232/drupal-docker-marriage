@@ -1,0 +1,9 @@
+$databases['default']['default'] = array(
+  'database' => 'drupal',
+  'username' => 'drupal',
+  'password' => '%%PASSWORD%%',
+  'host' => 'localhost',
+  'driver' => 'mysql',
+  'port' => 3306,
+  'prefix' => '',
+);
