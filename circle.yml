@@ -14,4 +14,4 @@ test:
   override:
     - curl -v localhost:8080
     - curl -s localhost:8080 | grep RSVP
-    - cd /var/www/tests && vendor/bin/behat
+    - make ssh SSH_CMD="'cd /var/www/tests && vendor/bin/behat'"

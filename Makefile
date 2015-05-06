@@ -18,8 +18,10 @@ run_bash_latest:
 	docker run -t -i $$(docker images -q | head -n 1) /bin/bash
 
 # SSH into the running container, by determining its port
+SSH_CMD =
+SSH_OPTS= -o ForwardAgent=yes -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no
 ssh:
-	ssh root@localhost -p $$(docker port marriage 22 | cut -d: -f2) -o ForwardAgent=yes -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no
+	ssh root@localhost $(SSH_OPTS) -p $$(docker port marriage 22 | cut -d: -f2) -- $(SSH_CMD)
 
 # remove snapshots of all stopped containers, remove all untagged images
 clean:
