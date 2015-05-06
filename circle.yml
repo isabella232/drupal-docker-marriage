@@ -8,7 +8,6 @@ checkout:
 
 dependencies:
   override:
-    - touch deploy/id_rsa.pub
     - make build
     - make run
     # Let mysql spin up
