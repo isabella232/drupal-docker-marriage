@@ -1,7 +1,7 @@
 deploy/id_rsa.pub:
 	ssh-add -L > $@
 
-build: deploy/id_rsa.pub deploy/docker_host_ip
+build: deploy/id_rsa.pub deploy/docker_host_ip deploy/selenium_ip
 	docker build -t drupal-docker-marriage .
 
 run:
@@ -28,5 +28,7 @@ clean:
 	docker ps -a -q | xargs docker rm
 	docker images -a | grep "^<none>" | awk '{print $$3}' | xargs docker rmi
 
+deploy/selenium_ip: deploy/docker_host_ip
+	cp $< $@
 deploy/docker_host_ip:
 	ip addr show docker0 | grep 'inet ' | cut -d' ' -f6 | cut -d/ -f1 > $@

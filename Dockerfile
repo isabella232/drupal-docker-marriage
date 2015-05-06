@@ -93,7 +93,8 @@ RUN chmod a+w /var/www/sites/default ; mkdir /var/www/sites/default/files ; chow
 
 # Set up behat tests
 ADD deploy/docker_host_ip /tmp/docker_host_ip
-RUN sed -i "s/%%DOCKER_HOST_IP%%/$(cat /tmp/docker_host_ip)/" /var/www/tests/behat.yml
+ADD deploy/selenium_ip /tmp/selenium_ip
+RUN sed -i "s/%%DOCKER_HOST_IP%%/$(cat /tmp/docker_host_ip)/; s/%%SELENIUM_IP%%/$(cat /tmp/selenium_ip)/" /var/www/tests/behat.yml
 RUN composer -q --working-dir=/var/www/tests install
 
 EXPOSE 80

@@ -1,3 +1,4 @@
 deploy/id_rsa.pub
 deploy/docker_host_ip
 site/tests/vendor
+deploy/selenium_ip

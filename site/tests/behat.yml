@@ -8,11 +8,11 @@ default:
         - Drupal\DrupalExtension\Context\MarkupContext
   extensions:
     Behat\MinkExtension:
-      base_url: http://localhost:8080
+      base_url: http://%%DOCKER_HOST_IP%%:8080
       selenium2:
         # requires the chrome driver: http://chromedriver.storage.googleapis.com/index.html
         browser: chrome
-        wd_host: http://%%DOCKER_HOST_IP%%:4444/wd/hub
+        wd_host: http://%%SELENIUM_IP%%:4444/wd/hub
     Drupal\DrupalExtension:
       api_driver: drupal
       drupal:
