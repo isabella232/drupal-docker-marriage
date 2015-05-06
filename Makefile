@@ -7,7 +7,7 @@ build: deploy/id_rsa.pub
 	docker build -t drupal-docker-marriage .
 
 run:
-	docker run -name marriage -d -p 8080:80 -p 9022:22 drupal-docker-marriage
+	docker run --name marriage -d -p 8080:80 -p 9022:22 drupal-docker-marriage
 	docker ps
 
 # stop and remove snapshot running container; WILL DESTROY DATA
