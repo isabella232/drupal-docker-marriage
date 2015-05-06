@@ -20,7 +20,7 @@ run_bash_latest:
 # SSH into the running container, by determining its port
 SSH_CMD =
 SSH_KEY = $(shell [ -e deploy/id_rsa ] && echo -i deploy/id_rsa)
-SSH_OPTS= $(SSH_KEY) -o ForwardAgent=yes -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no
+SSH_OPTS= $(SSH_KEY) -o ForwardAgent=yes -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -t
 ssh:
 	ssh root@localhost $(SSH_OPTS) -p $$(docker port marriage 22 | cut -d: -f2) -- $(SSH_CMD)
 
