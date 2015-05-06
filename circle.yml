@@ -16,7 +16,7 @@ dependencies:
 test:
   pre:
     # Run selenium server in background: https://circleci.com/docs/background-process
-    - 'java -jar selenium-server-standalone.jar &> artifacts/selenium.log':
+    - 'java -jar selenium-server-standalone.jar &> selenium.log':
         background: true
   override:
     - curl -v localhost:8080
