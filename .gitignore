@@ -1,1 +1,2 @@
-id_rsa.pub
+deploy/id_rsa.pub
+deploy/docker_host_ip

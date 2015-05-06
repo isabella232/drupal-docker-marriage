@@ -25,7 +25,7 @@ RUN apt-get update
 # Install lamp packages
 RUN DEBIAN_FRONTEND=noninteractive apt-get -y install git mysql-client \
   mysql-server apache2 libapache2-mod-php5 php5-mysql php-apc php5-gd \
-  php5-memcache php5-json memcached python-setuptools
+  php5-memcache php5-json memcached python-setuptools php5-curl
 
 # Install other utilities
 RUN apt-get install -y curl git vim
@@ -90,6 +90,11 @@ RUN sed -ri 's/UsePAM yes/UsePAM no/' /etc/ssh/sshd_config
 # This invalidates caching of subsequent steps, so we do this last.
 ADD . /var/shared/sites/wedding
 RUN chmod a+w /var/www/sites/default ; mkdir /var/www/sites/default/files ; chown -R www-data:www-data /var/www/
+
+# Set up behat tests
+ADD deploy/docker_host_ip /tmp/docker_host_ip
+RUN sed -i "s/%%DOCKER_HOST_IP%%/$(cat /tmp/docker_host_ip)/" /var/www/tests/behat.yml
+RUN composer -q --working-dir=/var/www/tests install
 
 EXPOSE 80
 EXPOSE 22
