@@ -1,7 +1,7 @@
 #==================================================================================
 # Initial configuration
 #==================================================================================
-FROM  ubuntu:saucy
+FROM ubuntu:14.04
 
 # Work-around for the fact that docker doesn't run upstart (or other daemons)
 # Otherwise 'apt-get install apache2' will fail when it tries to run 'service start apache2'
@@ -15,7 +15,7 @@ RUN perl -e 'use IO::Socket::INET; $s=IO::Socket::INET->new(PeerAddr=>shift); $s
   || echo "No squid-deb-proxy detected"
 
 # setup extended package repo
-RUN echo "deb http://archive.ubuntu.com/ubuntu saucy main restricted universe multiverse" > /etc/apt/sources.list
+RUN echo "deb http://archive.ubuntu.com/ubuntu trusty main restricted universe multiverse" > /etc/apt/sources.list
 RUN apt-get update
 
 #==================================================================================
@@ -41,7 +41,7 @@ RUN mkdir -p /var/run/sshd; mkdir -p /var/log/supervisor
 RUN curl -sS https://getcomposer.org/installer | php
 RUN mv composer.phar /usr/local/bin/composer
 RUN composer global require drush/drush:6.*
-RUN ln -sf /.composer/vendor/drush/drush/drush /usr/bin/drush
+RUN ln -sf /$HOME/.composer/vendor/drush/drush/drush /usr/bin/drush
 
 # Install and configure postfix for sending of emails
 RUN echo "postfix postfix/mailname string example.com" | debconf-set-selections
