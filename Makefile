@@ -1,5 +1,5 @@
 deploy/id_rsa.pub:
-	ssh-add -L > $@
+	ssh-add -L > $@ || ssh-keygen -t rsa -f deploy/id_rsa -N ''
 
 build: deploy/id_rsa.pub deploy/docker_host_ip deploy/selenium_ip
 	docker build -t drupal-docker-marriage .
@@ -19,7 +19,8 @@ run_bash_latest:
 
 # SSH into the running container, by determining its port
 SSH_CMD =
-SSH_OPTS= -o ForwardAgent=yes -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no
+SSH_KEY = $(shell [ -e deploy/id_rsa ] && echo -i deploy/id_rsa)
+SSH_OPTS= $(SSH_KEY) -o ForwardAgent=yes -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no
 ssh:
 	ssh root@localhost $(SSH_OPTS) -p $$(docker port marriage 22 | cut -d: -f2) -- $(SSH_CMD)
 
