@@ -57,7 +57,7 @@ ADD ./site /var/shared/sites/wedding/site
 RUN rm -rf /var/www/; ln -s /var/shared/sites/wedding/site /var/www
 
 # Apache vhost configuration
-RUN sed -i '/<VirtualHost/a \\t<Directory /var/www/>\n\t\tAllowOverride All\n\t</Directory>' /etc/apache2/sites-available/000-default.conf
+ADD deploy/apache_vhost /etc/apache2/sites-available/000-default.conf
 RUN a2enmod rewrite vhost_alias
 
 #==================================================================================
