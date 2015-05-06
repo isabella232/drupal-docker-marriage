@@ -1,7 +1,5 @@
 deploy/id_rsa.pub:
-	# Creating ./deploy/id_rsa.pub, which will be installed for SSH access to container
-	test -e ~/.ssh/id_rsa.pub || ssh-keygen
-	cp ~/.ssh/id_rsa.pub ./deploy/id_rsa.pub
+	ssh-add -L > $@
 
 build: deploy/id_rsa.pub deploy/docker_host_ip
 	docker build -t drupal-docker-marriage .
