@@ -25,7 +25,7 @@ RUN apt-get update
 # Install lamp packages
 RUN DEBIAN_FRONTEND=noninteractive apt-get -y install git mysql-client \
   mysql-server apache2 libapache2-mod-php5 php5-mysql php-apc php5-gd \
-  php5-memcache php5-json memcached
+  php5-memcache php5-json memcached python-setuptools
 
 # Install other utilities
 RUN apt-get install -y curl git vim
@@ -33,7 +33,7 @@ RUN apt-get install -y openssh-server pwgen
 
 # Install and configure supervisord
 # See http://docs.docker.io/en/latest/examples/using_supervisord/
-RUN apt-get install -y supervisor
+RUN easy_install supervisor
 ADD ./deploy/supervisord.conf /etc/supervisord.conf
 RUN mkdir -p /var/run/sshd; mkdir -p /var/log/supervisor
 
