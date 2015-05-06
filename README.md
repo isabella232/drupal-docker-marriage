@@ -54,7 +54,7 @@ If the build failed at a step and you'd like to launch bash inside the image
 created at the last successful step:
 
 ```bash
-# if the above failed at some step and we want to debug, the following will 
+# if the above failed at some step and we want to debug, the following will
 LATEST_IMAGE_ID=$(docker images -q | head -n 1) docker run -t -i $LATEST_IMAGE_ID /bin/bash
 ```
 
@@ -137,3 +137,35 @@ make ssh
 
 At this point, I can visit http://ivanandyun.com:8080 and see a Drupal site.
 Tweak the Makefile if you want it on port 80.
+
+# Running behat tests
+
+This is complicated if you're using vagrant. Here's how to get it working. Your vagrant
+
+* On your vagrant host, for example Mac OS X
+    * Make sure you have Google Chrome
+    * Download Selenium and Chrome driver:
+
+        ```
+        curl -o selenium.jar http://selenium-release.storage.googleapis.com/2.45/selenium-server-standalone-2.45.0.jar
+        curl -O http://chromedriver.storage.googleapis.com/2.15/chromedriver_mac32.zip
+        unzip chromedriver_mac32
+        ```
+    * Run Selenium:
+
+        ```java -jar selenium.jar```
+
+* Inside your vagrant box, in the drupal-docker-marriage directory
+  * Tell your your container how to get to Selenium, and tell Selenium how to get to your docker host. I'm assuming your vagrant box has eth1 as a host-only interface:
+
+        ```
+        ip route | perl -ne 'print "$1\n" if /^default via ([\d.]+)/' > deploy/selenium_ip
+        ip route | perl -ne 'print "$1\n" if /eth1.*src ([\d.]+)/' > deploy/docker_host_ip
+        ```
+  * Build and run your container, then run your tests:
+
+        ```
+        make build run
+        sleep 5
+        make ssh SSH_CMD="'cd /var/www/tests && vendor/bin/behat'"
+        ```
