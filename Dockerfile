@@ -61,6 +61,11 @@ RUN rm /tmp/password_db_root
 
 ##### Setup Drupal site
 
+# Cache behat requirements
+RUN mkdir -p /var/shared/sites/wedding/site
+ADD site/tests /var/shared/sites/wedding/site/tests
+RUN composer -q -d=/var/shared/sites/wedding/site/tests install
+
 # Import database
 ADD ./db/ivan_wedding.sql /tmp/drupal.sql
 RUN supervisord -c /etc/supervisord.conf && sleep 4 && \
@@ -69,9 +74,8 @@ RUN supervisord -c /etc/supervisord.conf && sleep 4 && \
 
 # Setup code, fix permissions
 RUN rm -rf /var/www && ln -s /var/shared/sites/wedding/site /var/www
-ADD . /tmp/site
-RUN mkdir -p /var/shared/sites && \
-  cp -R /tmp/site /var/shared/sites/wedding && \
+ADD . /tmp/repo
+RUN cp -TR /tmp/repo /var/shared/sites/wedding && \
   mkdir /var/www/sites/default/files && \
   chown -R www-data /var/www/ && \
   chmod -R o-rwx /var/www/ && \
@@ -92,7 +96,7 @@ ADD deploy/docker_host_ip /tmp/docker_host_ip
 ADD deploy/selenium_ip /tmp/selenium_ip
 RUN sed -i "s/%%DOCKER_HOST_IP%%/$(cat /tmp/docker_host_ip)/; \
  s/%%SELENIUM_IP%%/$(cat /tmp/selenium_ip)/" /var/www/tests/behat.yml
-RUN composer -q --working-dir=/var/www/tests install
+RUN composer -q -d=/var/www/tests install
 
 EXPOSE 80
 EXPOSE 22
