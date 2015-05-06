@@ -1,7 +1,11 @@
-Feature: Example feature
-  This suite only contains a dummy test, for now.
+Feature: Test Suite for Drupal docker marriage
 
   Scenario: Show the frontpage
     Given I am an anonymous user
-    When I visit "/"
-    Then I should see the text "Welcome"
+    When I visit "/#homepage-rsvp"
+    Given for "submitted[names]" I enter "John Doe"
+    Given for "submitted[email]" I enter "johndoe@example.com"
+    Given for "submitted[can_you_come]" I enter "Yes"
+    When I press the "Submit" button
+    Given I wait for AJAX to finish
+    Then I should see "Thank you!"
