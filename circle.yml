@@ -4,10 +4,17 @@ checkout:
 
 dependencies:
   override:
-    - make build
-    - make run
-    # Let mysql spin up
-    - sleep 3
+    - sudo service apache2 start
+    - >
+        echo "CREATE DATABASE drupal;
+        GRANT ALL PRIVILEGES ON drupal.* TO 'drupal'@'localhost'
+        IDENTIFIED BY 'drupal';
+        FLUSH PRIVILEGES;" | mysql -uroot
+    - mysql drupal < db/ivan_wedding.sql
+    - sudo rm -r /var/www
+    - sudo ln -s ~/drupal-docker-marriage/site /var/www
+    - sed -e 's/%%PASSWORD%%/drupal/' site/sites/default/default.settings.php deploy/settings.db > site/sites/default/settings.php
+    - sudo install -d -o www-data site/sites/default/files
 
 test:
   pre:
