@@ -93,6 +93,10 @@ RUN cp /tmp/settings.php /var/www/sites/default/settings.php && \
     chown www-data:www-data /var/www/sites/default/settings.php && \
     chmod a-w /var/www/sites/default/settings.php
 
+# Run updb
+RUN supervisord -c /etc/supervisord.conf && mysql_wait && \
+  cd /var/www/ && drush updb && supervisorctl stop all
+
 # Set up behat
 ADD deploy/docker_host_ip /tmp/docker_host_ip
 ADD deploy/selenium_ip /tmp/selenium_ip
