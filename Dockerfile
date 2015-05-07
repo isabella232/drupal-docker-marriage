@@ -57,7 +57,7 @@ RUN supervisord -c /etc/supervisord.conf && mysql_wait && \
         GRANT ALL PRIVILEGES ON drupal.* TO 'drupal'@'localhost' \
         IDENTIFIED BY '$(cat /tmp/password_db_drupal)'; \
 	      FLUSH PRIVILEGES;" | mysql -uroot -p$(cat /tmp/password_db_root) && \
-  supervisorctl stop mysql
+  supervisorctl stop all
 RUN rm /tmp/password_db_root
 
 
@@ -72,7 +72,7 @@ RUN composer -q -d=/var/shared/sites/wedding/site/tests install
 ADD ./db/ivan_wedding.sql /tmp/drupal.sql
 RUN supervisord -c /etc/supervisord.conf && mysql_wait && \
   mysql -udrupal -p$(cat /tmp/password_db_drupal) drupal < /tmp/drupal.sql && \
-  supervisorctl stop mysql
+  supervisorctl stop all
 
 # Setup code, fix permissions
 RUN rm -rf /var/www && ln -s /var/shared/sites/wedding/site /var/www
