@@ -33,3 +33,6 @@ deploy/selenium_ip:
 	ip addr show docker0 | grep 'inet ' | cut -d' ' -f6 | cut -d/ -f1 > $@
 deploy/docker_host_ip:
 	echo localhost > $@
+
+test:
+	$(MAKE) ssh SSH_CMD=behat

@@ -98,6 +98,7 @@ RUN supervisord -c /etc/supervisord.conf && mysql_wait && \
   cd /var/www/ && drush updb && supervisorctl stop all
 
 # Set up behat
+ADD deploy/behat /usr/local/bin/
 ADD deploy/docker_host_ip /tmp/docker_host_ip
 ADD deploy/selenium_ip /tmp/selenium_ip
 RUN sed -i "s/%%DOCKER_HOST_IP%%/$(cat /tmp/docker_host_ip)/; \
