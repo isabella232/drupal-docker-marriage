@@ -4,6 +4,9 @@ checkout:
 
 dependencies:
   override:
+    - sudo apt-get install postfix
+    - sudo a2enmod rewrite
+    - sudo sed -i -e 's/AllowOverride None/AllowOverride All/g' /etc/apache2/sites-enabled/default
     - sudo service apache2 start
     - >
         echo "CREATE DATABASE drupal;
@@ -11,10 +14,16 @@ dependencies:
         IDENTIFIED BY 'drupal';
         FLUSH PRIVILEGES;" | mysql -uroot
     - mysql drupal < db/ivan_wedding.sql
+    - sudo composer self-update
+    - composer global require drush/drush:6.*
+    - composer install -d site/tests
     - sudo rm -r /var/www
     - sudo ln -s ~/drupal-docker-marriage/site /var/www
     - sed -e 's/%%PASSWORD%%/drupal/' site/sites/default/default.settings.php deploy/settings.db > site/sites/default/settings.php
     - sudo install -d -o www-data site/sites/default/files
+    - '(cd site && drush updb -y)'
+    - sed -i -e 's/%%SELENIUM_IP%%/localhost/' site/tests/behat.yml
+    - sed -i -e 's/%%DOCKER_HOST_IP%%:8080/localhost/' site/tests/behat.yml
 
 test:
   pre:
@@ -22,6 +31,7 @@ test:
     - 'java -jar selenium-server-standalone.jar &> selenium.log':
         background: true
   override:
-    - curl -v localhost:8080
-    - curl -s localhost:8080 | grep RSVP
-    - make test
+    - curl -v localhost
+    - curl -s localhost | grep RSVP
+    - '(cd site/tests && ./vendor/bin/behat)'
+
