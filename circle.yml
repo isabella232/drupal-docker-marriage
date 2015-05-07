@@ -15,6 +15,7 @@ dependencies:
         FLUSH PRIVILEGES;" | mysql -uroot
     - mysql drupal < db/ivan_wedding.sql
     - sudo composer self-update
+    - rm -rf ~/.composer
     - composer global require drush/drush:6.*
     - composer install -d site/tests
     - sudo rm -r /var/www
