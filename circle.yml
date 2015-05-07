@@ -4,7 +4,7 @@ checkout:
 
 dependencies:
   override:
-    - sudo apt-get install postfix
+    - sudo env DEBIAN_FRONTEND=noninteractive apt-get install postfix
     - sudo a2enmod rewrite
     - sudo sed -i -e 's/AllowOverride None/AllowOverride All/g' /etc/apache2/sites-enabled/default
     - sudo service apache2 start
