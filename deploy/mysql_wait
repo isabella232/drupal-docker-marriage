@@ -1,0 +1,6 @@
+#!/bin/bash
+sock_file=/var/run/mysqld/mysqld.sock
+log() { echo -e "\033[0;33m$1\033[00m" >&2; }
+log "waiting for mysql to start ..."
+until [ -e $sock_file  ]; do sleep 0.5; done
+log "mysql started"

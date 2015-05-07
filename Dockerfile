@@ -49,7 +49,9 @@ RUN a2enmod rewrite vhost_alias
 # MySQL setup
 RUN pwgen -c -n -1 12 > /tmp/password_db_root
 RUN pwgen -c -n -1 12 > /tmp/password_db_drupal
-RUN supervisord -c /etc/supervisord.conf && sleep 4 && \
+ADD deploy/mysql_wait /usr/local/bin/
+RUN chmod a+x /usr/local/bin/mysql_wait
+RUN supervisord -c /etc/supervisord.conf && mysql_wait && \
   mysqladmin -u root password $(cat /tmp/password_db_root) && \
   echo "CREATE DATABASE drupal; \
         GRANT ALL PRIVILEGES ON drupal.* TO 'drupal'@'localhost' \
@@ -68,7 +70,7 @@ RUN composer -q -d=/var/shared/sites/wedding/site/tests install
 
 # Import database
 ADD ./db/ivan_wedding.sql /tmp/drupal.sql
-RUN supervisord -c /etc/supervisord.conf && sleep 4 && \
+RUN supervisord -c /etc/supervisord.conf && mysql_wait && \
   mysql -udrupal -p$(cat /tmp/password_db_drupal) drupal < /tmp/drupal.sql && \
   supervisorctl stop mysql
 
