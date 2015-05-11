@@ -8,7 +8,7 @@ RUN /var/build/scripts/detect_squid_deb_proxy
 ##### Install packages
 
 # LAMP
-ENV DEBIAN_FRONTEND=noninteractive
+ENV DEBIAN_FRONTEND noninteractive
 RUN apt-get update
 RUN apt-get -y install git mysql-client \
   mysql-server apache2 libapache2-mod-php5 php5-mysql php-apc php5-gd \
