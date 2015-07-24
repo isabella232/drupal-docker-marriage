@@ -1,5 +1,5 @@
 
-drupal-docker-marriage [![Circle CI](https://circleci.com/gh/dergachev/drupal-docker-marriage.png?style=badge)](https://circleci.com/gh/dergachev/drupal-docker-marriage)
+drupal-docker-marriage [![Circle CI](https://circleci.com/gh/evolvingweb/drupal-docker-marriage.png?style=badge)](https://circleci.com/gh/evolvingweb/drupal-docker-marriage)
 ======================
 
 An example of how to deploy a simple, wedding-themed Drupal site via Docker.
@@ -11,7 +11,7 @@ First lets clone this repo:
 
 ```bash
 # clone the repo
-git clone https://github.com/dergachev/drupal-docker-marriage.git
+git clone https://github.com/evolvingweb/drupal-docker-marriage.git
 cd drupal-docker-marriage
 ```
 
@@ -37,7 +37,7 @@ docker run -t -i ubuntu /bin/bash
 docker images
 ```
 
-Now let's build our own docker image from the included [Dockerfile](https://github.com/dergachev/drupal-docker-marriage/blob/master/Dockerfile):
+Now let's build our own docker image from the included [Dockerfile](https://github.com/evolvingweb/drupal-docker-marriage/blob/master/Dockerfile):
 
 ```
 # Create ~/.ssh/id_rsa, ~/.ssh/id_rsa.pub (so we can later connect to the container with this).
@@ -84,7 +84,7 @@ ssh root@localhost -p 9022
 ```
 
 To simplify the above steps, I provide a useful
-[Makefile](https://github.com/dergachev/drupal-docker-marriage/blob/master/Makefile):
+[Makefile](https://github.com/evolvingweb/drupal-docker-marriage/blob/master/Makefile):
 
 ```bash
 # build the image
@@ -126,7 +126,7 @@ ssh root@ivanandyun.com
 apt-get install -y curl vim git make
 apt-get install -y squid-deb-proxy
 
-git clone https://github.com/dergachev/docker-drupal-marriage.git
+git clone https://github.com/evolvingweb/docker-drupal-marriage.git
 cd docker-drupal-marriage
 
 make build
