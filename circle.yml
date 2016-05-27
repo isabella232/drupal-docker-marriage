@@ -21,4 +21,5 @@ test:
   override:
     - curl -v localhost:8080
     - curl -s localhost:8080 | grep RSVP
+    - sleep 5
     - make test

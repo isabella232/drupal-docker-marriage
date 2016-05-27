@@ -101,8 +101,8 @@ RUN supervisord -c /etc/supervisord.conf && mysql_wait && \
 ADD deploy/behat /usr/local/bin/
 ADD deploy/docker_host_ip /tmp/docker_host_ip
 ADD deploy/selenium_ip /tmp/selenium_ip
-RUN sed -i "s/%%DOCKER_HOST_IP%%/$(cat /tmp/docker_host_ip)/; \
- s/%%SELENIUM_IP%%/$(cat /tmp/selenium_ip)/" /var/www/tests/behat.yml
+RUN sed -i "s/DOCKER_HOST_IP/$(cat /tmp/docker_host_ip)/; \
+ s/SELENIUM_IP/$(cat /tmp/selenium_ip)/" /var/www/tests/behat.yml
 RUN composer -q -d=/var/www/tests install
 
 EXPOSE 80

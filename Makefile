@@ -21,8 +21,9 @@ run_bash_latest:
 SSH_CMD =
 SSH_KEY = $(shell [ -e deploy/id_rsa ] && echo -i deploy/id_rsa)
 SSH_OPTS= $(SSH_KEY) -o ForwardAgent=yes -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -t
+IP= $(shell cat deploy/docker_host_ip)
 ssh:
-	ssh root@localhost $(SSH_OPTS) -p $$(docker port marriage 22 | cut -d: -f2) -- $(SSH_CMD)
+	ssh root@$(IP) $(SSH_OPTS) -p $$(docker port marriage 22 | cut -d: -f2) -- $(SSH_CMD)
 
 # remove snapshots of all stopped containers, remove all untagged images
 clean:
@@ -32,7 +33,7 @@ clean:
 deploy/selenium_ip:
 	ip addr show docker0 | grep 'inet ' | cut -d' ' -f6 | cut -d/ -f1 > $@
 deploy/docker_host_ip:
-	echo localhost > $@
+	ip addr show docker0 | grep 'inet ' | cut -d' ' -f6 | cut -d/ -f1 > $@
 
 test:
 	$(MAKE) ssh SSH_CMD=behat
